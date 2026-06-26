@@ -8,4 +8,5 @@ dist/
 .vercel/
 *.command
 *.sh
+package-lock.json
 .vercel
