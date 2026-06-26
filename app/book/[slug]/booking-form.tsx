@@ -8,6 +8,15 @@ import type { Artist, Availability, BlockedDate } from '@/types'
 
 const PLACEMENTS = ['Upper arm','Lower arm','Forearm','Wrist','Hand','Shoulder','Chest','Rib','Back','Spine','Hip','Thigh','Calf','Ankle','Foot','Neck','Behind ear','Other']
 const SIZES = ['Tiny (< 2 in)','Small (2–4 in)','Medium (4–6 in)','Large (6–10 in)','XL (10+ in)','Full sleeve','Half sleeve']
+const SIZE_TO_DB: Record<string, string> = {
+  'Tiny (< 2 in)': 'small',
+  'Small (2–4 in)': 'small',
+  'Medium (4–6 in)': 'medium',
+  'Large (6–10 in)': 'large',
+  'XL (10+ in)': 'large',
+  'Full sleeve': 'full_sleeve',
+  'Half sleeve': 'full_sleeve',
+}
 const STYLES = ['Traditional','Neo-traditional','Realism','Watercolor','Blackwork','Geometric','Tribal','Japanese','Minimalist','Illustrative','Fine line','Other']
 
 interface Props {
@@ -61,7 +70,7 @@ export function BookingForm({ artist, availability, blockedDates }: Props) {
         duration_minutes: 120,
         tattoo_description: form.tattoo_description,
         placement: form.placement,
-        size: form.size,
+        size: SIZE_TO_DB[form.size] || 'other',
         style: form.style,
         is_color: form.is_color,
         is_cover_up: form.is_cover_up,
