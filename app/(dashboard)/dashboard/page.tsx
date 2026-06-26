@@ -157,22 +157,22 @@ export default async function DashboardPage() {
               <p className="px-6 py-8 text-center text-sm text-white/30">No upcoming bookings</p>
             )}
             {upcomingBookings?.map((booking: Booking & { clients?: unknown }) => (
-              <Link key={booking.id} href={`/bookings/${booking.id}`} className="flex items-start gap-4 px-6 py-4 hover:bg-white/3 transition-colors">
+              <Link key={booking.id} href={`/bookings/${booking.id}`} className="flex items-start gap-4 px-6 py-4 hover:bg-white/8 active:bg-white/12 transition-colors cursor-pointer group">
                 <div className="h-9 w-9 rounded-full bg-ink-500/20 flex items-center justify-center text-ink-300 font-semibold text-sm shrink-0">
                   {booking.client_name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{booking.client_name}</p>
+                  <p className="text-sm font-medium text-white truncate group-hover:text-ink-300 transition-colors">{booking.client_name}</p>
                   <p className="text-xs text-white/40 mt-0.5 truncate">{booking.tattoo_description || 'No description'}</p>
                   <p className="text-xs text-white/30 mt-0.5">{formatDateTime(booking.scheduled_at)}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'} className="text-xs">
+                  <Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'} className="text-xs capitalize">
                     {booking.status}
                   </Badge>
-                  {!booking.deposit_paid && (
-                    <span className="text-xs text-yellow-400">No deposit</span>
-                  )}
+                  <span className={`text-xs ${booking.deposit_paid ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {booking.deposit_paid ? 'Deposit paid' : booking.deposit_amount > 0 ? `$${booking.deposit_amount} due` : 'No deposit'}
+                  </span>
                 </div>
               </Link>
             ))}
