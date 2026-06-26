@@ -1,27 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { createServiceClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { randomUUID } from 'crypto'
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const { booking_id } = await req.json()
   if (!booking_id) return NextResponse.json({ error: 'booking_id required' }, { status: 400 })
 
   const serviceClient = createServiceClient()
+
+  // Verify booking exists
+  const { data: booking } = await serviceClient
+    .from('bookings')
+    .select('id')
+    .eq('id', booking_id)
+    .single()
+
+  if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+
   const token = randomUUID()
 
   const { data, error } = await serviceClient
     .from('consent_forms')
-    .upsert({
-      booking_id,
-      token,
-      status: 'pending',
-    }, { onConflict: 'booking_id' })
+    .upsert({ booking_id, token, status: 'pending' }, { onConflict: 'booking_id' })
     .select('token')
     .single()
 

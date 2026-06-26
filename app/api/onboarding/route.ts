@@ -5,10 +5,11 @@ import { cookies } from 'next/headers'
 import { slugify } from '@/lib/utils'
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -25,38 +26,32 @@ export async function POST(req: NextRequest) {
   const artistSlug = `${slugify(artist_name)}-${suffix}`
   const trialEnd = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Create studio
   const { data: studio, error: studioError } = await serviceClient
     .from('studios')
     .insert({
       name: studio_name,
       slug: studioSlug,
-      owner_id: session.user.id,
+      owner_id: user.id,
       subscription_status: 'trialing',
       trial_ends_at: trialEnd,
     })
     .select('id')
     .single()
 
-  if (studioError) {
-    return NextResponse.json({ error: studioError.message }, { status: 500 })
-  }
+  if (studioError) return NextResponse.json({ error: studioError.message }, { status: 500 })
 
-  // Create artist profile
   const { error: artistError } = await serviceClient
     .from('artists')
     .insert({
       studio_id: studio.id,
-      user_id: session.user.id,
+      user_id: user.id,
       name: artist_name,
       slug: artistSlug,
-      email: session.user.email,
+      email: user.email,
       is_owner: true,
     })
 
-  if (artistError) {
-    return NextResponse.json({ error: artistError.message }, { status: 500 })
-  }
+  if (artistError) return NextResponse.json({ error: artistError.message }, { status: 500 })
 
   return NextResponse.json({ success: true, studio_id: studio.id })
 }

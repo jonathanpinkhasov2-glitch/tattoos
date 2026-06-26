@@ -4,9 +4,10 @@ import { cookies } from 'next/headers'
 import { createCheckoutSession, PLANS } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { plan } = await req.json()
   if (!plan || !PLANS[plan as keyof typeof PLANS]) {
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
   const { data: studio } = await supabase
     .from('studios')
     .select('id, stripe_customer_id')
-    .eq('owner_id', session.user.id)
+    .eq('owner_id', user.id)
     .single()
 
   if (!studio) return NextResponse.json({ error: 'Studio not found' }, { status: 404 })
@@ -26,8 +27,8 @@ export async function POST(req: NextRequest) {
     priceId: PLANS[plan as keyof typeof PLANS].priceId,
     successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing?success=1`,
     cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`,
-    customerEmail: session.user.email,
-    metadata: { studio_id: studio.id, user_id: session.user.id },
+    customerEmail: user.email,
+    metadata: { studio_id: studio.id, user_id: user.id },
   })
 
   return NextResponse.json({ url: checkoutUrl })

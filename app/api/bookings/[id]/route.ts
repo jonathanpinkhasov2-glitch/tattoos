@@ -2,50 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, artists(*), clients(*), consent_forms(*)')
+    .eq('id', params.id)
+    .single()
+
+  if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  return NextResponse.json(data)
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const allowed = ['status', 'deposit_paid', 'total_paid', 'notes', 'scheduled_at', 'duration_minutes', 'session_price']
+  const { status, notes, deposit_paid } = body
+
   const updates: Record<string, unknown> = {}
-  for (const key of allowed) {
-    if (key in body) updates[key] = body[key]
-  }
+  if (status !== undefined) updates.status = status
+  if (notes !== undefined) updates.notes = notes
+  if (deposit_paid !== undefined) updates.deposit_paid = deposit_paid
 
-  if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
-  }
-
-  // Verify the booking belongs to the authenticated user's artist
-  const { data: booking } = await supabase
-    .from('bookings')
-    .select('id, artists!inner(user_id)')
-    .eq('id', params.id)
-    .single() as { data: { id: string; artists: { user_id: string } } | null }
-
-  if (!booking || booking.artists.user_id !== session.user.id) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  }
-
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('bookings')
     .update(updates)
     .eq('id', params.id)
+    .select()
+    .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  return NextResponse.json({ success: true })
-}
-
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createRouteHandlerClient({ cookies })
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { error } = await supabase.from('bookings').delete().eq('id', params.id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  return NextResponse.json({ success: true })
+  return NextResponse.json(data)
 }
