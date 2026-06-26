@@ -17,11 +17,23 @@ export async function POST(req: NextRequest) {
 
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
-  const token = randomUUID()
+  // Return existing consent form if already created
+  const { data: existing } = await serviceClient
+    .from('consent_forms')
+    .select('token')
+    .eq('booking_id', booking_id)
+    .single()
 
+  if (existing) {
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/consent/${existing.token}`
+    return NextResponse.json({ url })
+  }
+
+  // Create new consent form
+  const token = randomUUID()
   const { data, error } = await serviceClient
     .from('consent_forms')
-    .upsert({ booking_id, token, status: 'pending' }, { onConflict: 'booking_id' })
+    .insert({ booking_id, token, status: 'pending' })
     .select('token')
     .single()
 

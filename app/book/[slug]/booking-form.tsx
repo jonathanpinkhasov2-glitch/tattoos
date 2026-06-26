@@ -77,8 +77,8 @@ export function BookingForm({ artist, availability, blockedDates }: Props) {
         notes: form.notes,
         status: 'pending',
         deposit_amount: artist.deposit_percentage
-          ? Math.round((artist.hourly_rate ?? 150) * 2 * (artist.deposit_percentage / 100)) * 100
-          : 5000, // $50 default deposit
+          ? Math.round((artist.hourly_rate ?? 150) * 2 * (artist.deposit_percentage / 100))
+          : 50, // $50 default deposit
       }),
     })
 
