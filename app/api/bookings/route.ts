@@ -15,6 +15,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
+  // Sanitize size to valid DB enum values
+  const VALID_SIZES = ['small', 'medium', 'large', 'full_sleeve', 'other']
+  const SIZE_MAP: Record<string, string> = {
+    'tiny': 'small', 'small': 'small', 'medium': 'medium',
+    'large': 'large', 'xl': 'large', 'full': 'full_sleeve', 'half': 'full_sleeve',
+  }
+  const normalizedSize = size
+    ? (VALID_SIZES.includes(size)
+        ? size
+        : SIZE_MAP[Object.keys(SIZE_MAP).find(k => size.toLowerCase().includes(k)) ?? ''] ?? 'other')
+    : null
+
   const supabase = createServiceClient()
 
   // Check if artist exists and studio is active
@@ -79,7 +91,7 @@ export async function POST(req: NextRequest) {
       duration_minutes: duration_minutes ?? 120,
       tattoo_description: tattoo_description || null,
       placement: placement || null,
-      size: size || null,
+      size: normalizedSize,
       style: style || null,
       is_color: is_color ?? false,
       is_cover_up: is_cover_up ?? false,
