@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { StatCard } from '@/components/dashboard/stat-card'
+import { CopyBookingLink } from '@/components/dashboard/copy-booking-link'
 import { Badge } from '@/components/ui/badge'
 import { DollarSign, Users, Calendar, Clock, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
 import { formatMoney, formatDateTime, bookingStatusColor } from '@/lib/utils'
@@ -80,11 +81,14 @@ export default async function DashboardPage() {
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        <Link href={`/book/${studio.artists?.[0]?.slug ?? ''}`} target="_blank">
-          <Button variant="outline" size="sm">
-            View booking page ↗
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <CopyBookingLink url={`${process.env.NEXT_PUBLIC_APP_URL}/book/${studio.artists?.[0]?.slug ?? ''}`} />
+          <Link href={`/book/${studio.artists?.[0]?.slug ?? ''}`} target="_blank">
+            <Button variant="outline" size="sm">
+              View page ↗
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Trial banner */}
@@ -114,6 +118,7 @@ export default async function DashboardPage() {
           deltaType="neutral"
           icon={DollarSign}
           iconColor="text-green-400"
+          href="/settings/billing"
         />
         <StatCard
           label="Bookings this month"
@@ -122,6 +127,7 @@ export default async function DashboardPage() {
           deltaType="neutral"
           icon={Calendar}
           iconColor="text-ink-400"
+          href="/bookings"
         />
         <StatCard
           label="Pending bookings"
@@ -130,6 +136,7 @@ export default async function DashboardPage() {
           deltaType={pendingCount > 0 ? 'up' : 'neutral'}
           icon={Clock}
           iconColor="text-yellow-400"
+          href="/bookings?filter=pending"
         />
         <StatCard
           label="Waitlist"
@@ -138,6 +145,7 @@ export default async function DashboardPage() {
           deltaType="neutral"
           icon={Users}
           iconColor="text-blue-400"
+          href="/waitlist"
         />
       </div>
 

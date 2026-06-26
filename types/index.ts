@@ -57,6 +57,7 @@ export interface Artist {
   max_advance_days: number
   buffer_minutes: number
   hourly_rate?: number
+  stripe_account_id?: string
   created_at: string
   updated_at: string
   // Relations

@@ -6,6 +6,7 @@ import { Input, Textarea } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { Select, SelectItem } from '@/components/ui/select'
 import Link from 'next/link'
+import { ConnectBank } from '@/components/dashboard/connect-bank'
 import type { Studio, Artist } from '@/types'
 
 const TIMEZONES = [
@@ -222,6 +223,9 @@ export default function SettingsPage() {
         />
         <Button onClick={saveArtist} loading={loading}>Save profile</Button>
       </div>
+
+      {/* Stripe Connect — payouts */}
+      <ConnectBank stripeAccountId={artist.stripe_account_id ?? null} />
     </div>
   )
 }
