@@ -62,6 +62,9 @@ export default function SettingsPage() {
       bio: artist.bio,
       hourly_rate: artist.hourly_rate,
       deposit_percentage: artist.deposit_percentage,
+      deposit_type: artist.deposit_type,
+      deposit_amount: artist.deposit_amount,
+      deposit_required: artist.deposit_required,
       instagram: artist.instagram,
     }).eq('id', artist.id)
 
@@ -171,15 +174,45 @@ export default function SettingsPage() {
             value={artist.hourly_rate ?? ''}
             onChange={e => setArtist(a => a ? { ...a, hourly_rate: parseFloat(e.target.value) } : a)}
           />
-          <Input
-            label="Deposit %"
-            type="number"
-            min="0"
-            max="100"
-            placeholder="30"
-            value={artist.deposit_percentage ?? ''}
-            onChange={e => setArtist(a => a ? { ...a, deposit_percentage: parseInt(e.target.value) } : a)}
-          />
+          <Select
+            label="Deposit type"
+            value={artist.deposit_type ?? 'flat'}
+            onValueChange={v => setArtist(a => a ? { ...a, deposit_type: v } : a)}
+          >
+            <SelectItem value="flat">Flat amount ($)</SelectItem>
+            <SelectItem value="percent">Percentage (%)</SelectItem>
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {(artist.deposit_type ?? 'flat') === 'flat' ? (
+            <Input
+              label="Deposit amount ($)"
+              type="number"
+              min="0"
+              placeholder="50"
+              value={artist.deposit_amount ?? ''}
+              onChange={e => setArtist(a => a ? { ...a, deposit_amount: parseFloat(e.target.value) } : a)}
+            />
+          ) : (
+            <Input
+              label="Deposit %"
+              type="number"
+              min="0"
+              max="100"
+              placeholder="30"
+              value={artist.deposit_percentage ?? ''}
+              onChange={e => setArtist(a => a ? { ...a, deposit_percentage: parseInt(e.target.value) } : a)}
+            />
+          )}
+          <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer pt-6">
+            <input
+              type="checkbox"
+              className="rounded accent-ink-500"
+              checked={artist.deposit_required ?? true}
+              onChange={e => setArtist(a => a ? { ...a, deposit_required: e.target.checked } : a)}
+            />
+            Deposit required
+          </label>
         </div>
         <Input
           label="Instagram handle"
