@@ -25,12 +25,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { status, notes, deposit_paid } = body
+  const { status, notes, deposit_paid, deposit_amount } = body
 
   const updates: Record<string, unknown> = {}
   if (status !== undefined) updates.status = status
   if (notes !== undefined) updates.notes = notes
   if (deposit_paid !== undefined) updates.deposit_paid = deposit_paid
+  if (deposit_amount !== undefined) updates.deposit_amount = Number(deposit_amount)
 
   const { data, error } = await supabase
     .from('bookings')

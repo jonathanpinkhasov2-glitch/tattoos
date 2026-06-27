@@ -1,10 +1,11 @@
 'use client'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { useRouter } from 'next/navigation'
-import { Check, X, CheckCircle, Ban, FileText, Copy } from 'lucide-react'
+import { Check, X, CheckCircle, Ban, FileText, Copy, Pencil } from 'lucide-react'
 import type { Booking } from '@/types'
 
 interface Props { booking: Booking }
@@ -15,6 +16,8 @@ export function BookingActions({ booking }: Props) {
   const [showCancel, setShowCancel] = useState(false)
   const [showConsentLink, setShowConsentLink] = useState<string | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
+  const [showEditDeposit, setShowEditDeposit] = useState(false)
+  const [depositValue, setDepositValue] = useState(String(booking.deposit_amount ?? 0))
 
   const sendConsentForm = async () => {
     setLoading('consent')
@@ -101,6 +104,15 @@ export function BookingActions({ booking }: Props) {
         <FileText className="h-4 w-4 mr-1" /> Send consent form
       </Button>
 
+      {/* Edit deposit */}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => setShowEditDeposit(true)}
+      >
+        <Pencil className="h-4 w-4 mr-1" /> Edit deposit
+      </Button>
+
       {/* Cancel modal */}
       <Modal
         open={showCancel}
@@ -121,6 +133,52 @@ export function BookingActions({ booking }: Props) {
           >
             <Ban className="h-4 w-4 mr-1" /> Cancel it
           </Button>
+        </div>
+      </Modal>
+
+      {/* Edit deposit modal */}
+      <Modal
+        open={showEditDeposit}
+        onClose={() => setShowEditDeposit(false)}
+        title="Edit deposit amount"
+        description="Change the deposit required for this booking."
+        size="sm"
+      >
+        <div className="mt-3 space-y-3">
+          <Input
+            label="Deposit amount ($)"
+            type="number"
+            min="0"
+            value={depositValue}
+            onChange={e => setDepositValue(e.target.value)}
+          />
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => setShowEditDeposit(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="flex-1"
+              loading={loading === 'deposit'}
+              onClick={async () => {
+                setLoading('deposit')
+                const res = await fetch(`/api/bookings/${booking.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ deposit_amount: parseFloat(depositValue) }),
+                })
+                if (res.ok) {
+                  toast({ title: 'Deposit updated', type: 'success' })
+                  setShowEditDeposit(false)
+                  router.refresh()
+                } else {
+                  toast({ title: 'Failed to update', type: 'error' })
+                }
+                setLoading(null)
+              }}
+            >
+              Save
+            </Button>
+          </div>
         </div>
       </Modal>
 
