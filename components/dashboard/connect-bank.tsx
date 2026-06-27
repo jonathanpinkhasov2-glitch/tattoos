@@ -1,16 +1,27 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { Select, SelectItem } from '@/components/ui/select'
 import { useSearchParams } from 'next/navigation'
+import { useToast } from '@/components/ui/toast'
 
 interface ConnectBankProps {
   stripeAccountId?: string | null
 }
 
+const SCHEDULE_OPTIONS = [
+  { value: 'daily', label: 'Every day' },
+  { value: 'weekly', label: 'Every week (Fridays)' },
+  { value: 'monthly', label: 'Once a month (1st)' },
+]
+
 export function ConnectBank({ stripeAccountId }: ConnectBankProps) {
   const [loading, setLoading] = useState(false)
+  const [scheduleLoading, setScheduleLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'incomplete'>('idle')
+  const [payoutSchedule, setPayoutSchedule] = useState('weekly')
   const searchParams = useSearchParams()
+  const { toast } = useToast()
 
   useEffect(() => {
     const connect = searchParams.get('connect')
@@ -28,10 +39,30 @@ export function ConnectBank({ stripeAccountId }: ConnectBankProps) {
       const { url, error } = await res.json()
       if (error) throw new Error(error)
       window.location.href = url
-    } catch (e) {
+    } catch {
       setStatus('error')
       setLoading(false)
     }
+  }
+
+  async function updateSchedule(interval: string) {
+    setPayoutSchedule(interval)
+    setScheduleLoading(true)
+    try {
+      const res = await fetch('/api/stripe/connect/payout-schedule', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interval }),
+      })
+      if (res.ok) {
+        toast({ title: 'Payout schedule updated', type: 'success' })
+      } else {
+        toast({ title: 'Failed to update schedule', type: 'error' })
+      }
+    } catch {
+      toast({ title: 'Failed to update schedule', type: 'error' })
+    }
+    setScheduleLoading(false)
   }
 
   return (
@@ -76,7 +107,7 @@ export function ConnectBank({ stripeAccountId }: ConnectBankProps) {
           </div>
           <div className="flex items-center gap-3 text-sm text-white/50">
             <span className="h-6 w-6 rounded-full bg-ink-500/20 flex items-center justify-center text-xs text-ink-300 font-semibold">3</span>
-            Receive deposits directly to your bank every Friday
+            Choose how often you want to get paid
           </div>
           <Button onClick={startConnect} loading={loading} className="mt-2">
             Connect bank account →
@@ -84,11 +115,29 @@ export function ConnectBank({ stripeAccountId }: ConnectBankProps) {
           <p className="text-xs text-white/30 text-center">Powered by Stripe. No fees charged by TattooOS.</p>
         </div>
       ) : (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-white/50">Payouts every Friday via Stripe Express</span>
-          <Button variant="outline" size="sm" onClick={startConnect} loading={loading}>
-            Manage payouts ↗
-          </Button>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-white/50">Payouts via Stripe Express</p>
+            <Button variant="outline" size="sm" onClick={startConnect} loading={loading}>
+              Manage account ↗
+            </Button>
+          </div>
+          <div>
+            <p className="text-sm text-white/70 mb-2 font-medium">Payout frequency</p>
+            <Select
+              value={payoutSchedule}
+              onValueChange={updateSchedule}
+              placeholder="Choose frequency"
+            >
+              {SCHEDULE_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </Select>
+            {scheduleLoading && (
+              <p className="text-xs text-white/30 mt-1">Updating...</p>
+            )}
+            <p className="text-xs text-white/30 mt-2">Deposits are held by Stripe until your payout date, then sent directly to your bank.</p>
+          </div>
         </div>
       )}
     </div>
