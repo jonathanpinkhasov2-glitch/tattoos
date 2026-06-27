@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { sendNewBookingNotification, sendBookingConfirmationToClient } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -107,6 +108,37 @@ export async function POST(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Send email notifications (fire-and-forget — don't block response)
+  const { data: fullArtist } = await supabase
+    .from('artists')
+    .select('name, email')
+    .eq('id', artist_id)
+    .single()
+
+  if (fullArtist?.email) {
+    sendNewBookingNotification({
+      artistEmail: fullArtist.email,
+      artistName: fullArtist.name,
+      clientName: client_name,
+      clientEmail: client_email,
+      clientPhone: client_phone,
+      scheduledAt: scheduled_at,
+      tattooDescription: tattoo_description,
+      placement,
+      size: normalizedSize,
+      depositAmount: deposit_amount ?? 50,
+      bookingId: booking.id,
+    }).catch(() => {}) // silent fail — don't break booking if email fails
+  }
+
+  sendBookingConfirmationToClient({
+    clientEmail: client_email,
+    clientName: client_name,
+    artistName: fullArtist?.name ?? 'your artist',
+    scheduledAt: scheduled_at,
+    depositAmount: deposit_amount ?? 50,
+  }).catch(() => {})
 
   return NextResponse.json({ id: booking.id }, { status: 201 })
 }

@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
 
   if (!studio) return NextResponse.json({ error: 'Studio not found' }, { status: 404 })
 
+  // Pro is per-seat with a 5-seat minimum so it can't be gamed as a cheap solo plan
+  const quantity = plan === 'pro' ? 5 : 1
+
   const checkoutUrl = await createCheckoutSession({
     customerId: studio.stripe_customer_id ?? undefined,
     priceId: PLANS[plan as keyof typeof PLANS].priceId,
@@ -29,6 +32,7 @@ export async function POST(req: NextRequest) {
     cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/settings/billing`,
     customerEmail: user.email,
     metadata: { studio_id: studio.id, user_id: user.id },
+    quantity,
   })
 
   return NextResponse.json({ url: checkoutUrl })

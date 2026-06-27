@@ -85,8 +85,8 @@ export default function WaitlistPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white">{entry.client_name}</p>
                   <p className="text-xs text-white/40 mt-0.5">{entry.client_email}</p>
-                  {entry.style_preference && (
-                    <p className="text-xs text-white/30 mt-0.5">Style: {entry.style_preference}</p>
+                  {entry.tattoo_description && (
+                    <p className="text-xs text-white/30 mt-0.5 truncate">{entry.tattoo_description}</p>
                   )}
                 </div>
 

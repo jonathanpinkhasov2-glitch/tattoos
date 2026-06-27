@@ -43,7 +43,7 @@ const PLANS = [
     id: 'pro',
     name: 'Pro Studio',
     price: 19,
-    priceSuffix: '/artist',
+    priceSuffix: '/artist · 5 seat min',
     icon: Crown,
     color: 'text-yellow-400',
     features: [

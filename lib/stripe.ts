@@ -38,7 +38,7 @@ export const PLANS = {
     name: 'Pro',
     price: 19,
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
-    description: '$19/artist/month for studios with 5+ artists',
+    description: '$19/artist/month · 5 seat minimum ($95/mo) for studios with 5+ artists',
     features: [
       'Everything in Studio',
       'Unlimited artists',
@@ -57,6 +57,7 @@ export async function createCheckoutSession({
   cancelUrl,
   customerEmail,
   metadata,
+  quantity = 1,
 }: {
   customerId?: string
   priceId: string
@@ -64,12 +65,13 @@ export async function createCheckoutSession({
   cancelUrl: string
   customerEmail?: string
   metadata?: Record<string, string>
+  quantity?: number
 }): Promise<string> {
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     customer_email: customerId ? undefined : customerEmail,
     payment_method_types: ['card'],
-    line_items: [{ price: priceId, quantity: 1 }],
+    line_items: [{ price: priceId, quantity }],
     mode: 'subscription',
     success_url: successUrl,
     cancel_url: cancelUrl,

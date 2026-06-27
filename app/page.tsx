@@ -144,8 +144,8 @@ export default function LandingPage() {
         {/* Stats */}
         <div className="mt-20 grid grid-cols-3 gap-8 max-w-lg mx-auto">
           {[
-            { n: '28K+', l: 'Studios in US' },
-            { n: '9/10', l: 'Market gap score' },
+            { n: '28K+', l: 'Tattoo studios in the US' },
+            { n: '2–4 hrs', l: 'Admin saved per week' },
             { n: '$0', l: 'Commission on bookings' },
           ].map(({ n, l }) => (
             <div key={l} className="text-center">
@@ -153,6 +153,59 @@ export default function LandingPage() {
               <p className="text-sm text-white/40 mt-1">{l}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Before vs After */}
+      <section className="border-t border-white/6 py-20 bg-surface-1/30">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">Your workflow, before and after</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Before */}
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6">
+              <p className="text-sm font-semibold text-red-400 mb-4 flex items-center gap-2">
+                <span className="h-5 w-5 rounded-full bg-red-500/20 flex items-center justify-center text-xs">✕</span>
+                Without TattooOS
+              </p>
+              <ul className="space-y-3">
+                {[
+                  'DM back and forth for 3 days to nail down a date',
+                  'Manually invoice deposits via Venmo, hope they pay',
+                  'Print paper consent forms, file them somewhere',
+                  'Client cancels day-of, no deposit collected',
+                  'Forget client allergy info, scramble before session',
+                  'No idea how much revenue you made this month',
+                ].map(t => (
+                  <li key={t} className="flex items-start gap-2 text-sm text-white/50">
+                    <span className="text-red-400/60 shrink-0 mt-0.5">✕</span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* After */}
+            <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-6">
+              <p className="text-sm font-semibold text-green-400 mb-4 flex items-center gap-2">
+                <span className="h-5 w-5 rounded-full bg-green-500/20 flex items-center justify-center text-xs">✓</span>
+                With TattooOS
+              </p>
+              <ul className="space-y-3">
+                {[
+                  'Share one link — client picks date, fills details, done',
+                  'Deposit paid automatically when you confirm the booking',
+                  'Digital consent form sent, signed from any phone',
+                  'No-shows protected — deposit collected upfront',
+                  'Full client health history + allergies in their profile',
+                  'Revenue dashboard shows exact numbers, instantly',
+                ].map(t => (
+                  <li key={t} className="flex items-start gap-2 text-sm text-white/60">
+                    <span className="text-green-400 shrink-0 mt-0.5">✓</span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -258,7 +311,7 @@ export default function LandingPage() {
             Ready to get your time back?
           </h2>
           <p className="text-white/50 mb-8">
-            Join thousands of artists who stopped managing their business from their DMs.
+            Stop losing hours every week to DMs, Venmo requests, and paper forms. Get set up in 5 minutes.
           </p>
           <Link href="/signup">
             <Button size="lg">
